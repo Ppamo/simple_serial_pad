@@ -3,9 +3,10 @@
 #define B02 6
 #define B03 7
 #define B04 8
+const unsigned int RESET_INTERVAL = 2000;
+const unsigned int DELAY = 250;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
   Serial.println("Init");
 
@@ -22,15 +23,30 @@ void setup() {
 }
 
 void checkButton(unsigned int button, unsigned int& state){
+  static unsigned long stateHigmMillis = 0;
   if (digitalRead(button) == HIGH){
     if (state != 1) {
       state = 1;
       changed(button, 1);
+      if (button == B0S) {
+        stateHigmMillis = millis();
+      }
     }
   } else {
     if (state != 0){
       state = 0;
       changed(button, 0);
+      if (button == B0S) {
+        stateHigmMillis = 0;
+      }
+    }
+  }
+  if (button == B0S) {
+    if (stateHigmMillis > 0){
+      if ((millis() - stateHigmMillis) > RESET_INTERVAL){
+        Serial.println("Reset state");
+        stateHigmMillis = 0;
+      }
     }
   }
 }
@@ -52,5 +68,5 @@ void loop() {
   checkButton(B02, stateB02);
   checkButton(B03, stateB03);
   checkButton(B04, stateB04);
-  delay(300);
+  delay(DELAY);
 }
